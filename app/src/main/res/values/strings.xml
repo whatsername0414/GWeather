@@ -1,0 +1,46 @@
+<resources>
+    <!-- App -->
+    <string name="app_name">GWeather</string>
+
+    <!-- Login Screen -->
+    <string name="login_subtitle">Sign in to continue</string>
+    <string name="btn_login">Login</string>
+    <string name="login_no_account">Don\'t have an account? Register</string>
+
+    <!-- Register Screen -->
+    <string name="register_title">Create Account</string>
+    <string name="register_subtitle">Register to get started</string>
+    <string name="btn_register">Register</string>
+    <string name="register_have_account">Already have an account? Login</string>
+
+    <!-- Form field labels -->
+    <string name="label_name">Name</string>
+    <string name="label_email">Email</string>
+    <string name="label_password">Password</string>
+
+    <!-- Home Screen -->
+    <string name="home_title">Current Weather</string>
+    <string name="label_sunrise">Sunrise</string>
+    <string name="label_sunset">Sunset</string>
+    <string name="btn_try_again">Try Again</string>
+
+    <!-- Forecast Screen -->
+    <string name="forecast_title">Forecast</string>
+    <string name="btn_retry">Retry</string>
+
+    <!-- Validation errors -->
+    <string name="error_email_password_required">Email and password are required</string>
+    <string name="error_all_fields_required">All fields are required</string>
+    <string name="error_password_too_short">Password must be at least 6 characters</string>
+
+    <!-- Auth errors (from data layer) -->
+    <string name="error_invalid_credentials">Invalid email or password</string>
+    <string name="error_login_failed">Login failed. Please try again.</string>
+    <string name="error_email_already_exists">An account with this email already exists</string>
+    <string name="error_registration_failed">Registration failed. Please try again.</string>
+
+    <!-- General errors -->
+    <string name="error_location_unavailable">Unable to get location. Please ensure location is enabled.</string>
+    <string name="error_failed_to_load_forecast">Failed to load forecast</string>
+    <string name="error_unknown">Something went wrong</string>
+</resources>
