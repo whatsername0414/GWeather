@@ -14,7 +14,8 @@ data class DailyDataDto(
     @SerializedName("dt") val dt: Long,
     @SerializedName("sunrise") val sunrise: Long,
     @SerializedName("sunset") val sunset: Long,
-    @SerializedName("temp") val temp: DailyTempDto
+    @SerializedName("temp") val temp: DailyTempDto,
+    @SerializedName("humidity") val humidity: Int = 0
 )
 
 data class DailyTempDto(

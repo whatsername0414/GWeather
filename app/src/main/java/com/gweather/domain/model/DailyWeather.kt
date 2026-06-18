@@ -9,7 +9,8 @@ data class DailyWeather(
     val sunrise: Long,
     val sunset: Long,
     val weatherConditionId: Int,
-    val weatherDescription: String
+    val weatherDescription: String,
+    val humidity: Int
 )
 
 data class DailyWeatherPage(

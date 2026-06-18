@@ -4,6 +4,7 @@ import android.Manifest
 import android.content.pm.PackageManager
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -30,7 +31,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -39,7 +39,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -119,7 +118,6 @@ fun HomeScreen(viewModel: HomeViewModel = hiltViewModel()) {
                 }
                 is HomeUiState.Success -> {
                     val weather = state.weather
-                    val showMoon = weather.weatherConditionId == 800 && WeatherIconMapper.isAfter6PM()
                     val iconRes = WeatherIconMapper.getIcon(weather.weatherConditionId, checkMoonRule = true)
 
                     Box(
@@ -151,16 +149,15 @@ fun HomeScreen(viewModel: HomeViewModel = hiltViewModel()) {
                                     )
                                 }
 
-                                Spacer(Modifier.height(28.dp))
+                                Spacer(Modifier.height(48.dp))
 
-                                Icon(
+                                Image(
                                     painter = painterResource(id = iconRes),
                                     contentDescription = weather.weatherDescription,
-                                    modifier = Modifier.size(144.dp),
-                                    tint = weatherIconTint(weather.weatherConditionId, showMoon)
+                                    modifier = Modifier.size(144.dp)
                                 )
 
-                                Spacer(Modifier.height(12.dp))
+                                Spacer(Modifier.height(32.dp))
 
                                 Text(
                                     text = weather.temperature.formatTemp(),
@@ -201,8 +198,8 @@ fun HomeScreen(viewModel: HomeViewModel = hiltViewModel()) {
 
 @Composable
 private fun DetailsGlassCard(content: @Composable () -> Unit) {
-    val glassColor = MaterialTheme.colorScheme.surfaceVariant
-    val borderColor = MaterialTheme.colorScheme.onSurface
+    val glassColor = MaterialTheme.colorScheme.primary
+    val borderColor = MaterialTheme.colorScheme.primary
 
     Box(
         modifier = Modifier
@@ -212,7 +209,7 @@ private fun DetailsGlassCard(content: @Composable () -> Unit) {
                 brush = Brush.verticalGradient(
                     colorStops = arrayOf(
                         0.0f to glassColor.copy(alpha = 0f),
-                        0.6f to glassColor.copy(alpha = 0.25f),
+                        0.6f to glassColor.copy(alpha = 0.15f),
                         1.0f to glassColor.copy(alpha = 0.75f)
                     )
                 )
@@ -222,8 +219,8 @@ private fun DetailsGlassCard(content: @Composable () -> Unit) {
                 brush = Brush.verticalGradient(
                     colorStops = arrayOf(
                         0.0f to borderColor.copy(alpha = 0f),
-                        0.6f to borderColor.copy(alpha = 0.06f),
-                        1.0f to borderColor.copy(alpha = 0.18f)
+                        0.6f to borderColor.copy(alpha = 0.10f),
+                        1.0f to borderColor.copy(alpha = 0.35f)
                     )
                 ),
                 shape = RoundedCornerShape(28.dp)
@@ -248,18 +245,5 @@ private fun SunTimeItem(label: String, time: String) {
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.SemiBold
         )
-    }
-}
-
-private fun weatherIconTint(conditionId: Int, showMoon: Boolean): Color {
-    return when {
-        conditionId in 200..232 -> Color(0xFF78909C)
-        conditionId in 300..321 -> Color(0xFF90CAF9)
-        conditionId in 500..531 -> Color(0xFF42A5F5)
-        conditionId in 600..622 -> Color(0xFFB3E5FC)
-        conditionId in 700..781 -> Color(0xFFCFD8DC)
-        conditionId == 800 -> if (showMoon) Color(0xFFB0BEC5) else Color(0xFFFFC107)
-        conditionId in 801..804 -> Color(0xFF90A4AE)
-        else -> Color(0xFFFFC107)
     }
 }

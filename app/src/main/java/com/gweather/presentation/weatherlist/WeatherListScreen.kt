@@ -4,6 +4,8 @@ import android.Manifest
 import android.content.pm.PackageManager
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -15,12 +17,10 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Warning
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -29,7 +29,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -39,7 +38,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -50,7 +48,6 @@ import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.gweather.R
 import com.gweather.domain.model.DailyWeather
-import com.gweather.util.WeatherIconMapper
 import com.gweather.util.toDayLabel
 import com.gweather.util.toTimeString
 import kotlin.math.roundToInt
@@ -97,7 +94,7 @@ fun WeatherListScreen(viewModel: WeatherListViewModel = hiltViewModel()) {
                     .padding(horizontal = 16.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                when (val refresh = weatherItems.loadState.refresh) {
+                when (weatherItems.loadState.refresh) {
                     is LoadState.Loading -> {
                         if (weatherItems.itemCount == 0) {
                             item {
@@ -165,12 +162,8 @@ fun WeatherListScreen(viewModel: WeatherListViewModel = hiltViewModel()) {
 
 @Composable
 private fun DailyWeatherCard(weather: DailyWeather) {
-    val applyMoonRule = WeatherIconMapper.isTodayAndAfter6PM(weather.dt)
-    val iconRes = WeatherIconMapper.getIcon(weather.weatherConditionId, checkMoonRule = applyMoonRule)
-    val iconTint = dailyIconTint(weather.weatherConditionId, applyMoonRule)
-
-    val glassColor = MaterialTheme.colorScheme.surfaceVariant
-    val borderColor = MaterialTheme.colorScheme.onSurface
+    val glassColor = MaterialTheme.colorScheme.primary
+    val borderColor = MaterialTheme.colorScheme.primary
 
     Box(
         modifier = Modifier
@@ -190,8 +183,8 @@ private fun DailyWeatherCard(weather: DailyWeather) {
                 brush = Brush.horizontalGradient(
                     colorStops = arrayOf(
                         0.0f to borderColor.copy(alpha = 0f),
-                        0.5f to borderColor.copy(alpha = 0.08f),
-                        1.0f to borderColor.copy(alpha = 0.18f)
+                        0.5f to borderColor.copy(alpha = 0.15f),
+                        1.0f to borderColor.copy(alpha = 0.35f)
                     )
                 ),
                 shape = RoundedCornerShape(16.dp)
@@ -227,28 +220,17 @@ private fun DailyWeatherCard(weather: DailyWeather) {
                     }
                 }
 
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Icon(
-                        painter = painterResource(id = iconRes),
-                        contentDescription = weather.weatherDescription,
-                        modifier = Modifier.size(40.dp),
-                        tint = iconTint
+                Column(horizontalAlignment = Alignment.End) {
+                    Text(
+                        text = "${weather.tempMin.roundToInt()}° / ${weather.tempMax.roundToInt()}°C",
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.Medium
                     )
-                    Column(horizontalAlignment = Alignment.End) {
-                        Text(
-                            text = "${weather.tempMin.roundToInt()}° / ${weather.tempMax.roundToInt()}°C",
-                            style = MaterialTheme.typography.titleSmall,
-                            fontWeight = FontWeight.Medium
-                        )
-                        Text(
-                            text = weather.weatherDescription,
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
+                    Text(
+                        text = "Humidity: ${weather.humidity}%",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 }
             }
 
@@ -271,18 +253,5 @@ private fun LabeledValue(label: String, value: String) {
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
         Text(text = value, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Medium)
-    }
-}
-
-private fun dailyIconTint(conditionId: Int, showMoon: Boolean): Color {
-    return when {
-        conditionId in 200..232 -> Color(0xFF78909C)
-        conditionId in 300..321 -> Color(0xFF90CAF9)
-        conditionId in 500..531 -> Color(0xFF42A5F5)
-        conditionId in 600..622 -> Color(0xFFB3E5FC)
-        conditionId in 700..781 -> Color(0xFFCFD8DC)
-        conditionId == 800 -> if (showMoon) Color(0xFFB0BEC5) else Color(0xFFFFC107)
-        conditionId in 801..804 -> Color(0xFF90A4AE)
-        else -> Color(0xFFFFC107)
     }
 }

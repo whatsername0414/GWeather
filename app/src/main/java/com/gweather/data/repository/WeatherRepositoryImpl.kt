@@ -71,7 +71,7 @@ class WeatherRepositoryImpl @Inject constructor(
                 }
                 cachedCityCountry = result
                 result
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 Pair("Unknown", "??")
             }
         }
@@ -105,6 +105,7 @@ class WeatherRepositoryImpl @Inject constructor(
         sunrise = sunrise,
         sunset = sunset,
         weatherConditionId = 800,
-        weatherDescription = "Clear"
+        weatherDescription = "Clear",
+        humidity = humidity
     )
 }

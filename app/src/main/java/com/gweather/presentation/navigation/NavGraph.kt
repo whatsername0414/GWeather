@@ -9,10 +9,13 @@ import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.outlined.DateRange
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.ui.graphics.Color
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -64,6 +67,11 @@ fun AppNavGraph() {
             Scaffold(
                 bottomBar = {
                     NavigationBar {
+                        val navItemColors = NavigationBarItemDefaults.colors(
+                            indicatorColor = MaterialTheme.colorScheme.primary,
+                            selectedIconColor = Color.White,
+                            selectedTextColor = MaterialTheme.colorScheme.primary,
+                        )
                         NavigationBarItem(
                             selected = selectedTab == 0,
                             onClick = { selectedTab = 0 },
@@ -73,7 +81,8 @@ fun AppNavGraph() {
                                     contentDescription = "Home"
                                 )
                             },
-                            label = { Text("Home") }
+                            label = { Text("Home") },
+                            colors = navItemColors
                         )
                         NavigationBarItem(
                             selected = selectedTab == 1,
@@ -84,7 +93,8 @@ fun AppNavGraph() {
                                     contentDescription = "Forecast"
                                 )
                             },
-                            label = { Text("Forecast") }
+                            label = { Text("Forecast") },
+                            colors = navItemColors
                         )
                     }
                 }
