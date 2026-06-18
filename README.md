@@ -18,7 +18,7 @@ An Android weather app built with Jetpack Compose that shows current conditions 
 
 ## API Key Setup
 
-1. Copy the key attached in the email
+1. Copy the api key provided
 2. In the project root, open `local.properties` (create it if it doesn't exist)
 3. Add the following line:
 
