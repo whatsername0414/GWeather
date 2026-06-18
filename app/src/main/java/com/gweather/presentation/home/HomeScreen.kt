@@ -84,6 +84,14 @@ fun HomeScreen(viewModel: HomeViewModel = hiltViewModel()) {
             onRefresh = { viewModel.refresh() },
             modifier = Modifier
                 .fillMaxSize()
+                .background(
+                    brush = Brush.verticalGradient(
+                        colors = listOf(
+                            MaterialTheme.colorScheme.background,
+                            MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)
+                        )
+                    )
+                )
                 .padding(padding)
         ) {
             when (val state = uiState) {
