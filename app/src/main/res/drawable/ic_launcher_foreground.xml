@@ -2,32 +2,48 @@
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="108dp"
     android:height="108dp"
-    android:viewportWidth="64"
-    android:viewportHeight="64">
+    android:viewportWidth="108"
+    android:viewportHeight="108">
 
-    <!-- Sun shadow (opacity 0.2 on #231F20 → alpha #33) -->
-    <path
-        android:fillColor="#33231F20"
-        android:pathData="M22,24 m-10,0 a10,10 0 1,0 20,0 a10,10 0 1,0 -20,0" />
+    <!--
+        Artwork designed in a 64×64 coordinate space.
+        Group centers it at (54,54) and scales 1.5× so the content
+        (x: 12–56, y: 12–50 in original coords) maps to (21–87, 25.5–82.5)
+        — comfortably within the 18–90dp adaptive icon safe zone.
+    -->
+    <group
+        android:pivotX="34"
+        android:pivotY="31"
+        android:scaleX="1.5"
+        android:scaleY="1.5"
+        android:translateX="20"
+        android:translateY="23">
 
-    <!-- Sun -->
-    <path
-        android:fillColor="#E0995E"
-        android:pathData="M22,22 m-10,0 a10,10 0 1,0 20,0 a10,10 0 1,0 -20,0" />
+        <!-- Sun shadow -->
+        <path
+            android:fillColor="#33231F20"
+            android:pathData="M22,24 m-10,0 a10,10 0 1,0 20,0 a10,10 0 1,0 -20,0" />
 
-    <!-- Sun/cloud overlap shadow -->
-    <path
-        android:fillColor="#33231F20"
-        android:pathData="M32,22c0-1-0.2-2-0.4-2.9c-6.2,0.6-11.3,4.9-12.8,10.5c-0.8,0.1-1.6,0.4-2.4,0.7C18,31.4,19.9,32,22,32C27.5,32,32,27.5,32,22z" />
+        <!-- Sun -->
+        <path
+            android:fillColor="#E0995E"
+            android:pathData="M22,22 m-10,0 a10,10 0 1,0 20,0 a10,10 0 1,0 -20,0" />
 
-    <!-- Cloud shadow -->
-    <path
-        android:fillColor="#33231F20"
-        android:pathData="M48.7,36c0-7.7-6.6-14-14.7-14c-6.9,0-12.6,4.5-14.2,10.6c-4.4,0.6-7.8,4.3-7.8,8.6c0,4.8,4.1,8.8,9.2,8.8h27.5c4.1,0,7.3-3.1,7.3-7S52.7,36,48.7,36z" />
+        <!-- Sun/cloud overlap shadow -->
+        <path
+            android:fillColor="#33231F20"
+            android:pathData="M32,22c0-1-0.2-2-0.4-2.9c-6.2,0.6-11.3,4.9-12.8,10.5c-0.8,0.1-1.6,0.4-2.4,0.7C18,31.4,19.9,32,22,32C27.5,32,32,27.5,32,22z" />
 
-    <!-- Cloud -->
-    <path
-        android:fillColor="#FFFFFF"
-        android:pathData="M48.7,34c0-7.7-6.6-14-14.7-14c-6.9,0-12.6,4.5-14.2,10.6c-4.4,0.6-7.8,4.3-7.8,8.6c0,4.8,4.1,8.8,9.2,8.8h27.5c4.1,0,7.3-3.1,7.3-7S52.7,34,48.7,34z" />
+        <!-- Cloud shadow -->
+        <path
+            android:fillColor="#33231F20"
+            android:pathData="M48.7,36c0-7.7-6.6-14-14.7-14c-6.9,0-12.6,4.5-14.2,10.6c-4.4,0.6-7.8,4.3-7.8,8.6c0,4.8,4.1,8.8,9.2,8.8h27.5c4.1,0,7.3-3.1,7.3-7S52.7,36,48.7,36z" />
+
+        <!-- Cloud -->
+        <path
+            android:fillColor="#FFFFFF"
+            android:pathData="M48.7,34c0-7.7-6.6-14-14.7-14c-6.9,0-12.6,4.5-14.2,10.6c-4.4,0.6-7.8,4.3-7.8,8.6c0,4.8,4.1,8.8,9.2,8.8h27.5c4.1,0,7.3-3.1,7.3-7S52.7,34,48.7,34z" />
+
+    </group>
 
 </vector>
