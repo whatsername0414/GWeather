@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.LocationOn
@@ -39,21 +40,22 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.gweather.R
 import com.gweather.domain.model.DailyWeather
+import com.gweather.ui.theme.GWeatherTheme
 import com.gweather.util.toDayLabel
 import com.gweather.util.toTimeString
 import kotlin.math.roundToInt
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun WeatherListScreen(viewModel: WeatherListViewModel = hiltViewModel()) {
+fun WeatherListScreen(viewModel: WeatherListViewModel) {
     val context = LocalContext.current
     val weatherItems: LazyPagingItems<DailyWeather> = viewModel.weatherPagingData.collectAsLazyPagingItems()
 
@@ -75,7 +77,12 @@ fun WeatherListScreen(viewModel: WeatherListViewModel = hiltViewModel()) {
         }
     }
 
-    // Only show the pull-to-refresh indicator when already have items (not on initial load)
+    WeatherListScreenContent(weatherItems = weatherItems)
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun WeatherListScreenContent(weatherItems: LazyPagingItems<DailyWeather>) {
     val isRefreshing = weatherItems.loadState.refresh is LoadState.Loading
             && weatherItems.itemCount > 0
 
@@ -155,7 +162,9 @@ fun WeatherListScreen(viewModel: WeatherListViewModel = hiltViewModel()) {
                 item {
                     if (weatherItems.loadState.append is LoadState.Loading) {
                         Box(
-                            Modifier.fillMaxWidth().padding(16.dp),
+                            Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
                             contentAlignment = Alignment.Center
                         ) { CircularProgressIndicator(modifier = Modifier.size(24.dp)) }
                     } else {
@@ -167,8 +176,74 @@ fun WeatherListScreen(viewModel: WeatherListViewModel = hiltViewModel()) {
     }
 }
 
+@Preview(showBackground = true)
 @Composable
-private fun DailyWeatherCard(weather: DailyWeather) {
+private fun WeatherListScreenPreview() {
+    val sampleItems = listOf(
+        DailyWeather(
+            dt = 1718928000L,
+            cityName = "London",
+            countryCode = "GB",
+            tempMin = 12.0,
+            tempMax = 18.0,
+            sunrise = 1718937600L,
+            sunset = 1718992800L,
+            weatherConditionId = 800,
+            weatherDescription = "Clear sky",
+            humidity = 65
+        ),
+        DailyWeather(
+            dt = 1719014400L,
+            cityName = "London",
+            countryCode = "GB",
+            tempMin = 14.0,
+            tempMax = 21.0,
+            sunrise = 1719024000L,
+            sunset = 1719079200L,
+            weatherConditionId = 801,
+            weatherDescription = "Few clouds",
+            humidity = 58
+        ),
+        DailyWeather(
+            dt = 1719100800L,
+            cityName = "London",
+            countryCode = "GB",
+            tempMin = 10.0,
+            tempMax = 16.0,
+            sunrise = 1719110400L,
+            sunset = 1719165600L,
+            weatherConditionId = 500,
+            weatherDescription = "Light rain",
+            humidity = 80
+        )
+    )
+    GWeatherTheme {
+        Scaffold { padding ->
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(
+                        brush = Brush.verticalGradient(
+                            colors = listOf(
+                                MaterialTheme.colorScheme.background,
+                                MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)
+                            )
+                        )
+                    )
+                    .padding(padding)
+                    .padding(horizontal = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                item { Spacer(Modifier.height(8.dp)) }
+                items(sampleItems, key = { it.dt }) { DailyWeatherCard(it) }
+                item { Spacer(Modifier.height(8.dp)) }
+            }
+        }
+    }
+}
+
+@Composable
+internal fun DailyWeatherCard(weather: DailyWeather) {
     val glassColor = MaterialTheme.colorScheme.primary
     val borderColor = MaterialTheme.colorScheme.primary
 

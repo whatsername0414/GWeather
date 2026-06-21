@@ -41,20 +41,20 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gweather.R
+import com.gweather.ui.theme.GWeatherTheme
 
 @Composable
 fun LoginScreen(
     onNavigateToRegister: () -> Unit,
     onLoginSuccess: () -> Unit,
-    viewModel: LoginViewModel = hiltViewModel()
+    viewModel: LoginViewModel
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
-    val focusManager = LocalFocusManager.current
     val context = LocalContext.current
 
     var email by rememberSaveable { mutableStateOf("") }
@@ -70,6 +70,31 @@ fun LoginScreen(
             else -> Unit
         }
     }
+
+    LoginScreenContent(
+        email = email,
+        onEmailChange = { email = it },
+        password = password,
+        onPasswordChange = { password = it },
+        isLoading = uiState is AuthUiState.Loading,
+        onLogin = { viewModel.login(email, password) },
+        onNavigateToRegister = onNavigateToRegister,
+        snackbarHostState = snackbarHostState
+    )
+}
+
+@Composable
+fun LoginScreenContent(
+    email: String,
+    onEmailChange: (String) -> Unit,
+    password: String,
+    onPasswordChange: (String) -> Unit,
+    isLoading: Boolean,
+    onLogin: () -> Unit,
+    onNavigateToRegister: () -> Unit,
+    snackbarHostState: SnackbarHostState = remember { SnackbarHostState() }
+) {
+    val focusManager = LocalFocusManager.current
 
     Scaffold(snackbarHost = { SnackbarHost(snackbarHostState) }) { padding ->
         Box(
@@ -107,7 +132,7 @@ fun LoginScreen(
 
                     OutlinedTextField(
                         value = email,
-                        onValueChange = { email = it },
+                        onValueChange = onEmailChange,
                         label = { Text(stringResource(R.string.label_email)) },
                         singleLine = true,
                         keyboardOptions = KeyboardOptions(
@@ -122,7 +147,7 @@ fun LoginScreen(
 
                     OutlinedTextField(
                         value = password,
-                        onValueChange = { password = it },
+                        onValueChange = onPasswordChange,
                         label = { Text(stringResource(R.string.label_password)) },
                         singleLine = true,
                         visualTransformation = PasswordVisualTransformation(),
@@ -133,7 +158,7 @@ fun LoginScreen(
                         keyboardActions = KeyboardActions(
                             onDone = {
                                 focusManager.clearFocus()
-                                viewModel.login(email, password)
+                                onLogin()
                             }
                         ),
                         modifier = Modifier.fillMaxWidth()
@@ -144,12 +169,12 @@ fun LoginScreen(
                     Button(
                         onClick = {
                             focusManager.clearFocus()
-                            viewModel.login(email, password)
+                            onLogin()
                         },
-                        enabled = uiState !is AuthUiState.Loading,
+                        enabled = !isLoading,
                         modifier = Modifier.fillMaxWidth()
                     ) {
-                        if (uiState is AuthUiState.Loading) {
+                        if (isLoading) {
                             CircularProgressIndicator(
                                 modifier = Modifier.size(20.dp),
                                 strokeWidth = 2.dp,
@@ -169,6 +194,38 @@ fun LoginScreen(
                 }
             }
         }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun LoginScreenPreview() {
+    GWeatherTheme {
+        LoginScreenContent(
+            email = "user@example.com",
+            onEmailChange = {},
+            password = "password",
+            onPasswordChange = {},
+            isLoading = false,
+            onLogin = {},
+            onNavigateToRegister = {}
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun LoginScreenLoadingPreview() {
+    GWeatherTheme {
+        LoginScreenContent(
+            email = "user@example.com",
+            onEmailChange = {},
+            password = "password",
+            onPasswordChange = {},
+            isLoading = true,
+            onLogin = {},
+            onNavigateToRegister = {}
+        )
     }
 }
 

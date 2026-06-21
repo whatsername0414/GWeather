@@ -39,20 +39,20 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gweather.R
+import com.gweather.ui.theme.GWeatherTheme
 
 @Composable
 fun RegisterScreen(
     onNavigateToLogin: () -> Unit,
     onRegisterSuccess: () -> Unit,
-    viewModel: RegisterViewModel = hiltViewModel()
+    viewModel: RegisterViewModel
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
-    val focusManager = LocalFocusManager.current
     val context = LocalContext.current
 
     var name by rememberSaveable { mutableStateOf("") }
@@ -69,6 +69,35 @@ fun RegisterScreen(
             else -> Unit
         }
     }
+
+    RegisterScreenContent(
+        name = name,
+        onNameChange = { name = it },
+        email = email,
+        onEmailChange = { email = it },
+        password = password,
+        onPasswordChange = { password = it },
+        isLoading = uiState is AuthUiState.Loading,
+        onRegister = { viewModel.register(name, email, password) },
+        onNavigateToLogin = onNavigateToLogin,
+        snackbarHostState = snackbarHostState
+    )
+}
+
+@Composable
+fun RegisterScreenContent(
+    name: String,
+    onNameChange: (String) -> Unit,
+    email: String,
+    onEmailChange: (String) -> Unit,
+    password: String,
+    onPasswordChange: (String) -> Unit,
+    isLoading: Boolean,
+    onRegister: () -> Unit,
+    onNavigateToLogin: () -> Unit,
+    snackbarHostState: SnackbarHostState = remember { SnackbarHostState() }
+) {
+    val focusManager = LocalFocusManager.current
 
     Scaffold(snackbarHost = { SnackbarHost(snackbarHostState) }) { padding ->
         Box(
@@ -106,7 +135,7 @@ fun RegisterScreen(
 
                     OutlinedTextField(
                         value = name,
-                        onValueChange = { name = it },
+                        onValueChange = onNameChange,
                         label = { Text(stringResource(R.string.label_name)) },
                         singleLine = true,
                         keyboardOptions = KeyboardOptions(
@@ -121,7 +150,7 @@ fun RegisterScreen(
 
                     OutlinedTextField(
                         value = email,
-                        onValueChange = { email = it },
+                        onValueChange = onEmailChange,
                         label = { Text(stringResource(R.string.label_email)) },
                         singleLine = true,
                         keyboardOptions = KeyboardOptions(
@@ -136,7 +165,7 @@ fun RegisterScreen(
 
                     OutlinedTextField(
                         value = password,
-                        onValueChange = { password = it },
+                        onValueChange = onPasswordChange,
                         label = { Text(stringResource(R.string.label_password)) },
                         singleLine = true,
                         visualTransformation = PasswordVisualTransformation(),
@@ -147,7 +176,7 @@ fun RegisterScreen(
                         keyboardActions = KeyboardActions(
                             onDone = {
                                 focusManager.clearFocus()
-                                viewModel.register(name, email, password)
+                                onRegister()
                             }
                         ),
                         modifier = Modifier.fillMaxWidth()
@@ -158,12 +187,12 @@ fun RegisterScreen(
                     Button(
                         onClick = {
                             focusManager.clearFocus()
-                            viewModel.register(name, email, password)
+                            onRegister()
                         },
-                        enabled = uiState !is AuthUiState.Loading,
+                        enabled = !isLoading,
                         modifier = Modifier.fillMaxWidth()
                     ) {
-                        if (uiState is AuthUiState.Loading) {
+                        if (isLoading) {
                             CircularProgressIndicator(
                                 modifier = Modifier.size(20.dp),
                                 strokeWidth = 2.dp,
@@ -183,5 +212,41 @@ fun RegisterScreen(
                 }
             }
         }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun RegisterScreenPreview() {
+    GWeatherTheme {
+        RegisterScreenContent(
+            name = "Jane Doe",
+            onNameChange = {},
+            email = "jane@example.com",
+            onEmailChange = {},
+            password = "password",
+            onPasswordChange = {},
+            isLoading = false,
+            onRegister = {},
+            onNavigateToLogin = {}
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun RegisterScreenLoadingPreview() {
+    GWeatherTheme {
+        RegisterScreenContent(
+            name = "Jane Doe",
+            onNameChange = {},
+            email = "jane@example.com",
+            onEmailChange = {},
+            password = "password",
+            onPasswordChange = {},
+            isLoading = true,
+            onRegister = {},
+            onNavigateToLogin = {}
+        )
     }
 }

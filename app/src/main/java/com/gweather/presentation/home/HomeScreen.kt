@@ -43,19 +43,21 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gweather.R
+import com.gweather.domain.model.CurrentWeather
+import com.gweather.ui.theme.GWeatherTheme
 import com.gweather.util.WeatherIconMapper
 import com.gweather.util.formatTemp
 import com.gweather.util.toTimeString
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeScreen(viewModel: HomeViewModel = hiltViewModel()) {
+fun HomeScreen(viewModel: HomeViewModel) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
     val context = LocalContext.current
@@ -78,10 +80,26 @@ fun HomeScreen(viewModel: HomeViewModel = hiltViewModel()) {
         }
     }
 
+    HomeScreenContent(
+        uiState = uiState,
+        isRefreshing = isRefreshing,
+        onRefresh = { viewModel.refresh() },
+        onRetry = { viewModel.refresh() }
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun HomeScreenContent(
+    uiState: HomeUiState,
+    isRefreshing: Boolean,
+    onRefresh: () -> Unit,
+    onRetry: () -> Unit
+) {
     Scaffold { padding ->
         PullToRefreshBox(
             isRefreshing = isRefreshing,
-            onRefresh = { viewModel.refresh() },
+            onRefresh = onRefresh,
             modifier = Modifier
                 .fillMaxSize()
                 .background(
@@ -94,7 +112,7 @@ fun HomeScreen(viewModel: HomeViewModel = hiltViewModel()) {
                 )
                 .padding(padding)
         ) {
-            when (val state = uiState) {
+            when (uiState) {
                 is HomeUiState.Loading -> {
                     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                         CircularProgressIndicator()
@@ -114,18 +132,18 @@ fun HomeScreen(viewModel: HomeViewModel = hiltViewModel()) {
                                 tint = MaterialTheme.colorScheme.error
                             )
                             Text(
-                                text = stringResource(state.messageRes),
+                                text = stringResource(uiState.messageRes),
                                 style = MaterialTheme.typography.bodyLarge,
                                 color = MaterialTheme.colorScheme.onSurface
                             )
-                            Button(onClick = { viewModel.refresh() }) {
+                            Button(onClick = onRetry) {
                                 Text(stringResource(R.string.btn_try_again))
                             }
                         }
                     }
                 }
                 is HomeUiState.Success -> {
-                    val weather = state.weather
+                    val weather = uiState.weather
                     val iconRes = WeatherIconMapper.getIcon(weather.weatherConditionId, checkMoonRule = true)
 
                     Box(
@@ -192,8 +210,14 @@ fun HomeScreen(viewModel: HomeViewModel = hiltViewModel()) {
                                     modifier = Modifier.fillMaxWidth(),
                                     horizontalArrangement = Arrangement.SpaceEvenly
                                 ) {
-                                    SunTimeItem(label = stringResource(R.string.label_sunrise), time = weather.sunrise.toTimeString())
-                                    SunTimeItem(label = stringResource(R.string.label_sunset), time = weather.sunset.toTimeString())
+                                    SunTimeItem(
+                                        label = stringResource(R.string.label_sunrise),
+                                        time = weather.sunrise.toTimeString()
+                                    )
+                                    SunTimeItem(
+                                        label = stringResource(R.string.label_sunset),
+                                        time = weather.sunset.toTimeString()
+                                    )
                                 }
                             }
                         }
@@ -201,6 +225,29 @@ fun HomeScreen(viewModel: HomeViewModel = hiltViewModel()) {
                 }
             }
         }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun HomeScreenPreview() {
+    GWeatherTheme {
+        HomeScreenContent(
+            uiState = HomeUiState.Success(
+                weather = CurrentWeather(
+                    cityName = "London",
+                    countryCode = "GB",
+                    temperature = 18.5,
+                    sunrise = 1718937600L,
+                    sunset = 1718992800L,
+                    weatherConditionId = 800,
+                    weatherDescription = "Clear sky"
+                )
+            ),
+            isRefreshing = false,
+            onRefresh = {},
+            onRetry = {}
+        )
     }
 }
 

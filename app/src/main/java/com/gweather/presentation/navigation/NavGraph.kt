@@ -25,6 +25,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.compose.runtime.Composable
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.gweather.presentation.auth.LoginScreen
 import com.gweather.presentation.auth.RegisterScreen
 import com.gweather.presentation.home.HomeScreen
@@ -46,7 +47,8 @@ fun AppNavGraph() {
                     navController.navigate(ROUTE_MAIN) {
                         popUpTo(ROUTE_LOGIN) { inclusive = true }
                     }
-                }
+                },
+                viewModel = hiltViewModel(it)
             )
         }
 
@@ -57,7 +59,8 @@ fun AppNavGraph() {
                     navController.navigate(ROUTE_MAIN) {
                         popUpTo(ROUTE_LOGIN) { inclusive = true }
                     }
-                }
+                },
+                viewModel = hiltViewModel(it)
             )
         }
 
@@ -107,8 +110,12 @@ fun AppNavGraph() {
                     label = "tab_transition"
                 ) { tab ->
                     when (tab) {
-                        0 -> HomeScreen()
-                        else -> WeatherListScreen()
+                        0 -> HomeScreen(
+                            viewModel = hiltViewModel(it)
+                        )
+                        else -> WeatherListScreen(
+                            viewModel = hiltViewModel(it)
+                        )
                     }
                 }
             }
