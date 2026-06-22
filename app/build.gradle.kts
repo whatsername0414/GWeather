@@ -91,6 +91,7 @@ dependencies {
     implementation(libs.paging.compose)
 
     implementation(libs.coroutines.android)
+    implementation(libs.lottie.compose)
 
     testImplementation(libs.junit)
     testImplementation(libs.mockk)

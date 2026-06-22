@@ -14,15 +14,13 @@ interface WeatherApi {
         @Query("lon") lon: Double,
         @Query("units") units: String,
         @Query("lang") lang: String,
-        @Query("appid") apiKey: String
     ): CurrentWeatherResponseDto
 
-    @GET("data/4.0/onecall/timeline/1day")
+    @GET("data/4.0/onecall/timeline/1h")
     suspend fun getDailyWeatherList(
         @Query("lat") lat: Double,
         @Query("lon") lon: Double,
         @Query("units") units: String,
-        @Query("appid") apiKey: String
     ): DailyWeatherResponseDto
 
     @GET

@@ -4,8 +4,8 @@ import android.content.Context
 import android.location.Geocoder
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
-import com.gweather.domain.LocationProvider
-import com.gweather.util.FusedLocationProvider
+import com.gweather.data.location.FusedLocationProvider
+import com.gweather.domain.repository.LocationRepository
 import dagger.Binds
 import dagger.Module
 import dagger.Provides
@@ -21,7 +21,7 @@ abstract class LocationModule {
 
     @Binds
     @Singleton
-    abstract fun bindLocationProvider(impl: FusedLocationProvider): LocationProvider
+    abstract fun bindLocationRepository(impl: FusedLocationProvider): LocationRepository
 
     companion object {
 

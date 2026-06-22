@@ -19,6 +19,8 @@ data class CurrentDataDto(
     @SerializedName("pressure") val pressure: Int,
     @SerializedName("humidity") val humidity: Int,
     @SerializedName("clouds") val clouds: Int,
+    @SerializedName("wind_speed") val windSpeed: Double = 0.0,
+    @SerializedName("visibility") val visibility: Int = 0,
     @SerializedName("weather") val weather: List<WeatherConditionDto>
 )
 
