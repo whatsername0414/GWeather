@@ -4,29 +4,33 @@ import android.Manifest
 import android.content.pm.PackageManager
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.Image
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -38,22 +42,46 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.airbnb.lottie.compose.LottieAnimation
+import com.airbnb.lottie.compose.LottieCompositionSpec
+import com.airbnb.lottie.compose.LottieConstants
+import com.airbnb.lottie.compose.rememberLottieComposition
 import com.gweather.R
 import com.gweather.domain.model.CurrentWeather
+import com.gweather.presentation.components.GlassCard
+import com.gweather.ui.theme.BgBase
+import com.gweather.ui.theme.BgGlowMid
+import com.gweather.ui.theme.BgGlowTop
 import com.gweather.ui.theme.GWeatherTheme
+import com.gweather.ui.theme.OrangeAccent
+import com.gweather.ui.theme.OrangeAccentLight
+import com.gweather.ui.theme.SkyBlueDarkSecondary
+import com.gweather.ui.theme.TemperatureTextStyle
+import com.gweather.ui.theme.TemperatureUnitTextStyle
+import com.gweather.ui.theme.White03
+import com.gweather.ui.theme.White06
+import com.gweather.ui.theme.White07
+import com.gweather.ui.theme.White30
+import com.gweather.ui.theme.White45
+import com.gweather.ui.theme.White50
+import com.gweather.ui.theme.White60
+import com.gweather.ui.theme.White85
+import com.gweather.ui.theme.White90
 import com.gweather.util.WeatherIconMapper
-import com.gweather.util.formatTemp
 import com.gweather.util.toTimeString
+import kotlin.math.roundToInt
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -96,141 +124,319 @@ fun HomeScreenContent(
     onRefresh: () -> Unit,
     onRetry: () -> Unit
 ) {
-    Scaffold { padding ->
-        PullToRefreshBox(
-            isRefreshing = isRefreshing,
-            onRefresh = onRefresh,
+    Scaffold(containerColor = Color.Transparent) { padding ->
+        BoxWithConstraints(
             modifier = Modifier
                 .fillMaxSize()
-                .background(
-                    brush = Brush.verticalGradient(
-                        colors = listOf(
-                            MaterialTheme.colorScheme.background,
-                            MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)
-                        )
-                    )
-                )
                 .padding(padding)
         ) {
-            when (uiState) {
-                is HomeUiState.Loading -> {
-                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        CircularProgressIndicator()
-                    }
-                }
-                is HomeUiState.Error -> {
-                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.spacedBy(12.dp),
-                            modifier = Modifier.padding(24.dp)
-                        ) {
-                            Icon(
-                                Icons.Default.Warning,
-                                contentDescription = null,
-                                modifier = Modifier.size(48.dp),
-                                tint = MaterialTheme.colorScheme.error
-                            )
-                            Text(
-                                text = stringResource(uiState.messageRes),
-                                style = MaterialTheme.typography.bodyLarge,
-                                color = MaterialTheme.colorScheme.onSurface
-                            )
-                            Button(onClick = onRetry) {
-                                Text(stringResource(R.string.btn_try_again))
-                            }
+            val w = constraints.maxWidth.toFloat()
+
+            Box(modifier = Modifier.fillMaxSize().background(BgBase))
+
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .fillMaxHeight(0.65f)
+                    .background(
+                        Brush.radialGradient(
+                            colorStops = arrayOf(
+                                0f to BgGlowTop,
+                                0.5f to BgGlowMid.copy(alpha = 0.85f),
+                                1f to Color.Transparent
+                            ),
+                            center = Offset(w * 0.5f, 0f),
+                            radius = w
+                        )
+                    )
+            )
+
+            PullToRefreshBox(
+                isRefreshing = isRefreshing,
+                onRefresh = onRefresh,
+                modifier = Modifier.fillMaxSize()
+            ) {
+                when (uiState) {
+                    is HomeUiState.Loading -> {
+                        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                            CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
                         }
                     }
-                }
-                is HomeUiState.Success -> {
-                    val weather = uiState.weather
-                    val iconRes = WeatherIconMapper.getIcon(weather.weatherConditionId, checkMoonRule = true)
-
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .verticalScroll(rememberScrollState())
-                            .padding(24.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        DetailsGlassCard {
+                    is HomeUiState.Error -> {
+                        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                             Column(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalAlignment = Alignment.CenterHorizontally
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.spacedBy(12.dp),
+                                modifier = Modifier.padding(24.dp)
                             ) {
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(4.dp)
-                                ) {
-                                    Icon(
-                                        Icons.Default.LocationOn,
-                                        contentDescription = null,
-                                        tint = MaterialTheme.colorScheme.primary,
-                                        modifier = Modifier.size(20.dp)
-                                    )
-                                    Text(
-                                        text = "${weather.cityName}, ${weather.countryCode}",
-                                        style = MaterialTheme.typography.titleLarge,
-                                        fontWeight = FontWeight.Medium
-                                    )
-                                }
-
-                                Spacer(Modifier.height(48.dp))
-
-                                Image(
-                                    painter = painterResource(id = iconRes),
-                                    contentDescription = weather.weatherDescription,
-                                    modifier = Modifier.size(144.dp)
+                                Icon(
+                                    Icons.Default.Warning,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(48.dp),
+                                    tint = White50
                                 )
-
-                                Spacer(Modifier.height(32.dp))
-
                                 Text(
-                                    text = weather.temperature.formatTemp(),
-                                    fontSize = 90.sp,
-                                    fontWeight = FontWeight.Light,
-                                    color = MaterialTheme.colorScheme.onBackground
+                                    text = stringResource(uiState.messageRes),
+                                    style = MaterialTheme.typography.labelMedium,
+                                    color = White60
                                 )
-
-                                Text(
-                                    text = weather.weatherDescription,
-                                    style = MaterialTheme.typography.bodyLarge,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-
-                                Spacer(Modifier.height(28.dp))
-
-                                HorizontalDivider(
-                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f)
-                                )
-
-                                Spacer(Modifier.height(20.dp))
-
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.SpaceEvenly
+                                Button(
+                                    onClick = onRetry,
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = MaterialTheme.colorScheme.primary
+                                    )
                                 ) {
-                                    SunTimeItem(
-                                        label = stringResource(R.string.label_sunrise),
-                                        time = weather.sunrise.toTimeString()
-                                    )
-                                    SunTimeItem(
-                                        label = stringResource(R.string.label_sunset),
-                                        time = weather.sunset.toTimeString()
-                                    )
+                                    Text(stringResource(R.string.btn_try_again))
                                 }
                             }
                         }
                     }
+                    is HomeUiState.Success -> WeatherContent(uiState.weather)
                 }
             }
         }
     }
 }
 
+@Composable
+private fun WeatherContent(weather: CurrentWeather) {
+    val iconRes = WeatherIconMapper.getIcon(weather.weatherConditionId, checkMoonRule = true)
+    val iconComposition by rememberLottieComposition(LottieCompositionSpec.RawRes(iconRes))
+
+    BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .verticalScroll(rememberScrollState())
+            .padding(horizontal = 24.dp)
+            .defaultMinSize(minHeight = maxHeight),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        LocationBar(cityName = weather.cityName, countryCode = weather.countryCode)
+
+        Spacer(Modifier.height(16.dp))
+
+        LottieAnimation(
+            composition = iconComposition,
+            iterations = LottieConstants.IterateForever,
+            modifier = Modifier.size(144.dp)
+        )
+
+        Spacer(Modifier.height(8.dp))
+
+        TemperatureDisplay(weather.temperature)
+
+        Spacer(Modifier.height(6.dp))
+
+        Text(
+            text = weather.weatherDescription.uppercase(),
+            style = MaterialTheme.typography.labelMedium,
+            color = White45
+        )
+
+        Spacer(Modifier.height(28.dp))
+
+        WeatherStatsRow(weather)
+
+        Spacer(Modifier.height(16.dp))
+
+        SunStrip(
+            sunrise = weather.sunrise,
+            sunset = weather.sunset
+        )
+
+        Spacer(Modifier.height(80.dp))
+    }
+    } // BoxWithConstraints
+}
+
+@Composable
+private fun LocationBar(cityName: String, countryCode: String) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(5.dp)
+    ) {
+        Box(
+            modifier = Modifier
+                .size(12.dp)
+                .rotate(-45f)
+                .clip(
+                    RoundedCornerShape(
+                        topStart = 6.dp,
+                        topEnd = 6.dp,
+                        bottomEnd = 6.dp,
+                        bottomStart = 0.dp
+                    )
+                )
+                .background(
+                    Brush.linearGradient(
+                        colors = listOf(MaterialTheme.colorScheme.primary, SkyBlueDarkSecondary)
+                    )
+                )
+        )
+        Text(
+            text = "$cityName, $countryCode",
+            style = MaterialTheme.typography.labelLarge,
+            color = White85
+        )
+    }
+}
+
+@Composable
+private fun TemperatureDisplay(temperature: Double) {
+    Row(verticalAlignment = Alignment.Top) {
+        Text(
+            text = temperature.roundToInt().toString(),
+            style = TemperatureTextStyle,
+            color = Color.White,
+            maxLines = 1,
+            softWrap = false,
+            overflow = TextOverflow.Clip
+        )
+        Text(
+            text = "°C",
+            style = TemperatureUnitTextStyle,
+            color = White50,
+            modifier = Modifier.padding(top = 8.dp),
+            maxLines = 1,
+            softWrap = false
+        )
+    }
+}
+
+@Composable
+private fun WeatherStatsRow(weather: CurrentWeather) {
+    GlassCard(
+        modifier = Modifier.fillMaxWidth(),
+        shape = MaterialTheme.shapes.large
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(IntrinsicSize.Min),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            WeatherStat(
+                icon = "💧",
+                value = "${weather.humidity}%",
+                label = stringResource(R.string.label_humidity),
+                modifier = Modifier.weight(1f)
+            )
+            Box(
+                modifier = Modifier
+                    .width(1.dp)
+                    .fillMaxHeight(0.6f)
+                    .background(White07)
+            )
+            WeatherStat(
+                icon = "💨",
+                value = "${weather.windSpeed.roundToInt()} km/h",
+                label = stringResource(R.string.label_wind),
+                modifier = Modifier.weight(1f)
+            )
+            Box(
+                modifier = Modifier
+                    .width(1.dp)
+                    .fillMaxHeight(0.6f)
+                    .background(White07)
+            )
+            WeatherStat(
+                icon = "👁️",
+                value = "${weather.visibility / 1000} km",
+                label = stringResource(R.string.label_visibility),
+                modifier = Modifier.weight(1f)
+            )
+        }
+    }
+}
+
+@Composable
+private fun WeatherStat(
+    icon: String,
+    value: String,
+    label: String,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier.padding(vertical = 14.dp, horizontal = 8.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(3.dp)
+    ) {
+        Text(text = icon, fontSize = 15.sp)
+        Text(
+            text = value,
+            style = MaterialTheme.typography.labelMedium,
+            color = White90
+        )
+        Text(
+            text = label.uppercase(),
+            style = MaterialTheme.typography.labelSmall,
+            color = White30
+        )
+    }
+}
+
+@Composable
+private fun SunStrip(sunrise: Long, sunset: Long) {
+    GlassCard(
+        modifier = Modifier.fillMaxWidth(),
+        backgroundColor = White03,
+        borderColor = White06
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp, vertical = 14.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            SunItem(emoji = "🌅", time = sunrise.toTimeString(), label = stringResource(R.string.label_sunrise))
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .height(2.dp)
+                    .offset(y = (-6).dp)
+                    .padding(horizontal = 12.dp)
+                    .clip(RoundedCornerShape(2.dp))
+                    .background(
+                        Brush.horizontalGradient(
+                            colors = listOf(
+                                OrangeAccent.copy(alpha = 0.4f),
+                                OrangeAccentLight.copy(alpha = 0.7f),
+                                OrangeAccent.copy(alpha = 0.4f)
+                            )
+                        )
+                    )
+            )
+            SunItem(emoji = "🌇", time = sunset.toTimeString(), label = stringResource(R.string.label_sunset))
+        }
+    }
+}
+
+@Composable
+private fun SunItem(emoji: String, time: String, label: String) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(2.dp)
+    ) {
+        Text(text = emoji, fontSize = 18.sp)
+        Text(
+            text = time,
+            style = MaterialTheme.typography.labelMedium,
+            color = White85
+        )
+        Text(
+            text = label.uppercase(),
+            style = MaterialTheme.typography.labelSmall,
+            color = White30
+        )
+    }
+}
+
 @Preview(showBackground = true)
 @Composable
-private fun HomeScreenPreview() {
+private fun HomeScreenSuccessPreview() {
     GWeatherTheme {
         HomeScreenContent(
             uiState = HomeUiState.Success(
@@ -241,64 +447,15 @@ private fun HomeScreenPreview() {
                     sunrise = 1718937600L,
                     sunset = 1718992800L,
                     weatherConditionId = 800,
-                    weatherDescription = "Clear sky"
+                    weatherDescription = "Clear sky",
+                    humidity = 65,
+                    windSpeed = 12.0,
+                    visibility = 10000
                 )
             ),
             isRefreshing = false,
             onRefresh = {},
             onRetry = {}
-        )
-    }
-}
-
-@Composable
-private fun DetailsGlassCard(content: @Composable () -> Unit) {
-    val glassColor = MaterialTheme.colorScheme.primary
-    val borderColor = MaterialTheme.colorScheme.primary
-
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(28.dp))
-            .background(
-                brush = Brush.verticalGradient(
-                    colorStops = arrayOf(
-                        0.0f to glassColor.copy(alpha = 0f),
-                        0.6f to glassColor.copy(alpha = 0.15f),
-                        1.0f to glassColor.copy(alpha = 0.75f)
-                    )
-                )
-            )
-            .border(
-                width = 1.dp,
-                brush = Brush.verticalGradient(
-                    colorStops = arrayOf(
-                        0.0f to borderColor.copy(alpha = 0f),
-                        0.6f to borderColor.copy(alpha = 0.10f),
-                        1.0f to borderColor.copy(alpha = 0.35f)
-                    )
-                ),
-                shape = RoundedCornerShape(28.dp)
-            )
-            .padding(horizontal = 28.dp, vertical = 24.dp),
-        contentAlignment = Alignment.Center
-    ) {
-        content()
-    }
-}
-
-@Composable
-private fun SunTimeItem(label: String, time: String) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(
-            text = label,
-            style = MaterialTheme.typography.labelMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-        Text(
-            text = time,
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.SemiBold
         )
     }
 }
