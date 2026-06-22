@@ -6,6 +6,7 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
@@ -19,7 +20,16 @@ object NetworkModule {
     @Provides
     @Singleton
     fun provideOkHttpClient(): OkHttpClient {
+        val apiKeyInterceptor = Interceptor { chain ->
+            val original = chain.request()
+            val url = original.url.newBuilder()
+                .addQueryParameter("appid", BuildConfig.WEATHER_API_KEY)
+                .build()
+            chain.proceed(original.newBuilder().url(url).build())
+        }
+
         return OkHttpClient.Builder()
+            .addInterceptor(apiKeyInterceptor)
             .addInterceptor(
                 HttpLoggingInterceptor { message ->
                     android.util.Log.d("OkHttp", message)

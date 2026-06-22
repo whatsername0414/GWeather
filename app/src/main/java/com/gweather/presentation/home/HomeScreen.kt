@@ -55,6 +55,7 @@ import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.airbnb.lottie.compose.LottieAnimation
+import com.gweather.presentation.UiState
 import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.LottieConstants
 import com.airbnb.lottie.compose.rememberLottieComposition
@@ -79,7 +80,6 @@ import com.gweather.ui.theme.White50
 import com.gweather.ui.theme.White60
 import com.gweather.ui.theme.White85
 import com.gweather.ui.theme.White90
-import com.gweather.util.WeatherIconMapper
 import com.gweather.util.toTimeString
 import kotlin.math.roundToInt
 
@@ -94,6 +94,7 @@ fun HomeScreen(viewModel: HomeViewModel) {
         ActivityResultContracts.RequestMultiplePermissions()
     ) { permissions ->
         if (permissions.values.any { it }) viewModel.loadWeather()
+        else viewModel.onPermissionDenied()
     }
 
     LaunchedEffect(Unit) {
@@ -119,7 +120,7 @@ fun HomeScreen(viewModel: HomeViewModel) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreenContent(
-    uiState: HomeUiState,
+    uiState: UiState<HomeData>,
     isRefreshing: Boolean,
     onRefresh: () -> Unit,
     onRetry: () -> Unit
@@ -157,12 +158,12 @@ fun HomeScreenContent(
                 modifier = Modifier.fillMaxSize()
             ) {
                 when (uiState) {
-                    is HomeUiState.Loading -> {
+                    is UiState.Loading -> {
                         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                             CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
                         }
                     }
-                    is HomeUiState.Error -> {
+                    is UiState.Error -> {
                         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                             Column(
                                 horizontalAlignment = Alignment.CenterHorizontally,
@@ -191,7 +192,7 @@ fun HomeScreenContent(
                             }
                         }
                     }
-                    is HomeUiState.Success -> WeatherContent(uiState.weather)
+                    is UiState.Success -> WeatherContent(uiState.data.weather, uiState.data.iconRes)
                 }
             }
         }
@@ -199,8 +200,7 @@ fun HomeScreenContent(
 }
 
 @Composable
-private fun WeatherContent(weather: CurrentWeather) {
-    val iconRes = WeatherIconMapper.getIcon(weather.weatherConditionId, checkMoonRule = true)
+private fun WeatherContent(weather: CurrentWeather, iconRes: Int) {
     val iconComposition by rememberLottieComposition(LottieCompositionSpec.RawRes(iconRes))
 
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
@@ -439,18 +439,21 @@ private fun SunItem(emoji: String, time: String, label: String) {
 private fun HomeScreenSuccessPreview() {
     GWeatherTheme {
         HomeScreenContent(
-            uiState = HomeUiState.Success(
-                weather = CurrentWeather(
-                    cityName = "London",
-                    countryCode = "GB",
-                    temperature = 18.5,
-                    sunrise = 1718937600L,
-                    sunset = 1718992800L,
-                    weatherConditionId = 800,
-                    weatherDescription = "Clear sky",
-                    humidity = 65,
-                    windSpeed = 12.0,
-                    visibility = 10000
+            uiState = UiState.Success(
+                HomeData(
+                    weather = CurrentWeather(
+                        cityName = "London",
+                        countryCode = "GB",
+                        temperature = 18.5,
+                        sunrise = 1718937600L,
+                        sunset = 1718992800L,
+                        weatherConditionId = 800,
+                        weatherDescription = "Clear sky",
+                        humidity = 65,
+                        windSpeed = 12.0,
+                        visibility = 10000
+                    ),
+                    iconRes = R.raw.ic_weather_sun
                 )
             ),
             isRefreshing = false,

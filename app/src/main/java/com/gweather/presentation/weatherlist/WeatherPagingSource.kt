@@ -3,6 +3,8 @@ package com.gweather.presentation.weatherlist
 import android.util.Log
 import androidx.paging.PagingSource
 import androidx.paging.PagingState
+import com.gweather.domain.AppError
+import com.gweather.domain.AppException
 import com.gweather.domain.model.DailyWeather
 import com.gweather.domain.repository.WeatherRepository
 
@@ -24,9 +26,12 @@ class WeatherPagingSource(
                 prevKey = null,
                 nextKey = page.nextUrl
             )
+        } catch (e: AppException) {
+            Log.e("WeatherPaging", "load() error: ${e.error}")
+            LoadResult.Error(e)
         } catch (e: Exception) {
             Log.e("WeatherPaging", "load() error: ${e.message}")
-            LoadResult.Error(e)
+            LoadResult.Error(AppException(AppError.UNKNOWN))
         }
     }
 

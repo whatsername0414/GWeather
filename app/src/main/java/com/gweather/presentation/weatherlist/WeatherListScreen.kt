@@ -34,6 +34,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
@@ -53,8 +54,10 @@ import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.LottieConstants
 import com.airbnb.lottie.compose.rememberLottieComposition
 import com.gweather.R
+import com.gweather.domain.AppException
 import com.gweather.domain.model.DailyWeather
 import com.gweather.presentation.components.GlassCard
+import com.gweather.presentation.toMessageRes
 import com.gweather.ui.theme.BgBase
 import com.gweather.ui.theme.BgGlowTop
 import com.gweather.ui.theme.GWeatherTheme
@@ -65,7 +68,6 @@ import com.gweather.ui.theme.White30
 import com.gweather.ui.theme.White35
 import com.gweather.ui.theme.White40
 import com.gweather.ui.theme.White85
-import com.gweather.util.WeatherIconMapper
 import com.gweather.util.isCurrentHour
 import com.gweather.util.toShortDateString
 import com.gweather.util.toTimeString
@@ -76,11 +78,19 @@ import kotlin.math.roundToInt
 fun WeatherListScreen(viewModel: WeatherListViewModel) {
     val context = LocalContext.current
     val weatherItems: LazyPagingItems<DailyWeather> = viewModel.weatherPagingData.collectAsLazyPagingItems()
+    val locationError by viewModel.locationError.collectAsStateWithLifecycle()
 
     val permissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
     ) { permissions ->
         if (permissions.values.any { it }) viewModel.loadLocation()
+        else viewModel.onPermissionDenied()
+    }
+
+    val requestPermissions = {
+        permissionLauncher.launch(
+            arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION)
+        )
     }
 
     LaunchedEffect(Unit) {
@@ -89,13 +99,23 @@ fun WeatherListScreen(viewModel: WeatherListViewModel) {
         if (fine == PackageManager.PERMISSION_GRANTED || coarse == PackageManager.PERMISSION_GRANTED) {
             viewModel.loadLocation()
         } else {
-            permissionLauncher.launch(
-                arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION)
-            )
+            requestPermissions()
         }
     }
 
-    WeatherListContent(weatherItems = weatherItems)
+    if (locationError != null) {
+        Box(
+            modifier = Modifier.fillMaxSize().background(BgBase),
+            contentAlignment = Alignment.Center
+        ) {
+            ForecastError(
+                message = stringResource(locationError!!),
+                onRetry = requestPermissions
+            )
+        }
+    } else {
+        WeatherListContent(weatherItems = weatherItems)
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -155,14 +175,15 @@ fun WeatherListContent(weatherItems: LazyPagingItems<DailyWeather>) {
                     }
                     is LoadState.Error -> {
                         if (weatherItems.itemCount == 0) {
+                            val messageRes = (refresh.error as? AppException)?.error?.toMessageRes()
+                                ?: R.string.error_failed_to_load_forecast
                             item {
                                 Box(
                                     modifier = Modifier.fillParentMaxSize(),
                                     contentAlignment = Alignment.Center
                                 ) {
                                     ForecastError(
-                                        message = refresh.error.localizedMessage
-                                            ?: stringResource(R.string.error_failed_to_load_forecast),
+                                        message = stringResource(messageRes),
                                         onRetry = { weatherItems.retry() }
                                     )
                                 }
@@ -207,7 +228,7 @@ private fun ForecastHeader() {
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
-            text = "Hourly Forecast",
+            text = stringResource(R.string.forecast_header),
             fontSize = 15.sp,
             fontWeight = FontWeight.SemiBold,
             color = White85
@@ -218,8 +239,7 @@ private fun ForecastHeader() {
 @Composable
 private fun ForecastRow(weather: DailyWeather) {
     val isNow = weather.dt.isCurrentHour()
-    val iconRes = WeatherIconMapper.getIcon(weather.weatherConditionId)
-    val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(iconRes))
+    val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(weather.iconRes))
 
     val primary = MaterialTheme.colorScheme.primary
     val bgColor = if (isNow) primary.copy(alpha = 0.12f) else White04
@@ -322,7 +342,8 @@ private fun ForecastRowPreview() {
                     dt = System.currentTimeMillis() / 1000,
                     cityName = "London", countryCode = "GB",
                     temp = 18.0, weatherConditionId = 800,
-                    weatherDescription = "Clear sky", humidity = 65
+                    weatherDescription = "Clear sky", humidity = 65,
+                    iconRes = R.raw.ic_weather_sun
                 )
             )
             ForecastRow(
@@ -330,7 +351,8 @@ private fun ForecastRowPreview() {
                     dt = 1718935200L,
                     cityName = "London", countryCode = "GB",
                     temp = 21.0, weatherConditionId = 801,
-                    weatherDescription = "Few clouds", humidity = 58
+                    weatherDescription = "Few clouds", humidity = 58,
+                    iconRes = R.raw.ic_weather_cloud
                 )
             )
             ForecastRow(
@@ -338,7 +360,8 @@ private fun ForecastRowPreview() {
                     dt = 1718942400L,
                     cityName = "London", countryCode = "GB",
                     temp = 16.0, weatherConditionId = 500,
-                    weatherDescription = "Light rain", humidity = 80
+                    weatherDescription = "Light rain", humidity = 80,
+                    iconRes = R.raw.ic_weather_rain
                 )
             )
         }

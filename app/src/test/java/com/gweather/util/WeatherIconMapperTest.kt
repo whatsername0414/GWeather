@@ -1,6 +1,7 @@
 package com.gweather.util
 
 import com.gweather.R
+import com.gweather.domain.WeatherIconMapper
 import org.junit.Assert.*
 import org.junit.Test
 
@@ -8,50 +9,50 @@ class WeatherIconMapperTest {
 
     @Test
     fun getIcon_thunderstormRange_returnsThunderstormIcon() {
-        assertEquals(R.drawable.ic_weather_thunderstorm, WeatherIconMapper.getIcon(200))
-        assertEquals(R.drawable.ic_weather_thunderstorm, WeatherIconMapper.getIcon(216))
-        assertEquals(R.drawable.ic_weather_thunderstorm, WeatherIconMapper.getIcon(232))
+        assertEquals(R.raw.ic_weather_thunderstorm, WeatherIconMapper.getIcon(200))
+        assertEquals(R.raw.ic_weather_thunderstorm, WeatherIconMapper.getIcon(216))
+        assertEquals(R.raw.ic_weather_thunderstorm, WeatherIconMapper.getIcon(232))
     }
 
     @Test
     fun getIcon_drizzleRange_returnsDrizzleIcon() {
-        assertEquals(R.drawable.ic_weather_drizzle, WeatherIconMapper.getIcon(300))
-        assertEquals(R.drawable.ic_weather_drizzle, WeatherIconMapper.getIcon(321))
+        assertEquals(R.raw.ic_weather_drizzle, WeatherIconMapper.getIcon(300))
+        assertEquals(R.raw.ic_weather_drizzle, WeatherIconMapper.getIcon(321))
     }
 
     @Test
     fun getIcon_rainRange_returnsRainIcon() {
-        assertEquals(R.drawable.ic_weather_rain, WeatherIconMapper.getIcon(500))
-        assertEquals(R.drawable.ic_weather_rain, WeatherIconMapper.getIcon(531))
+        assertEquals(R.raw.ic_weather_rain, WeatherIconMapper.getIcon(500))
+        assertEquals(R.raw.ic_weather_rain, WeatherIconMapper.getIcon(531))
     }
 
     @Test
     fun getIcon_snowRange_returnsSnowIcon() {
-        assertEquals(R.drawable.ic_weather_snow, WeatherIconMapper.getIcon(600))
-        assertEquals(R.drawable.ic_weather_snow, WeatherIconMapper.getIcon(622))
+        assertEquals(R.raw.ic_weather_snow, WeatherIconMapper.getIcon(600))
+        assertEquals(R.raw.ic_weather_snow, WeatherIconMapper.getIcon(622))
     }
 
     @Test
     fun getIcon_fogRange_returnsFogIcon() {
-        assertEquals(R.drawable.ic_weather_fog, WeatherIconMapper.getIcon(700))
-        assertEquals(R.drawable.ic_weather_fog, WeatherIconMapper.getIcon(781))
+        assertEquals(R.raw.ic_weather_fog, WeatherIconMapper.getIcon(700))
+        assertEquals(R.raw.ic_weather_fog, WeatherIconMapper.getIcon(781))
     }
 
     @Test
     fun getIcon_clearSky_withoutMoonRule_returnsSunIcon() {
-        assertEquals(R.drawable.ic_weather_sun, WeatherIconMapper.getIcon(800, checkMoonRule = false))
+        assertEquals(R.raw.ic_weather_sun, WeatherIconMapper.getIcon(800, checkMoonRule = false))
     }
 
     @Test
     fun getIcon_cloudyRange_returnsCloudIcon() {
-        assertEquals(R.drawable.ic_weather_cloud, WeatherIconMapper.getIcon(801))
-        assertEquals(R.drawable.ic_weather_cloud, WeatherIconMapper.getIcon(804))
+        assertEquals(R.raw.ic_weather_cloud, WeatherIconMapper.getIcon(801))
+        assertEquals(R.raw.ic_weather_cloud, WeatherIconMapper.getIcon(804))
     }
 
     @Test
     fun getIcon_unknown_returnsSunIcon() {
-        assertEquals(R.drawable.ic_weather_sun, WeatherIconMapper.getIcon(999))
-        assertEquals(R.drawable.ic_weather_sun, WeatherIconMapper.getIcon(0))
+        assertEquals(R.raw.ic_weather_sun, WeatherIconMapper.getIcon(999))
+        assertEquals(R.raw.ic_weather_sun, WeatherIconMapper.getIcon(0))
     }
 
     @Test

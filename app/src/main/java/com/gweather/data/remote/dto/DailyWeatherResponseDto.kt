@@ -12,17 +12,7 @@ data class DailyWeatherResponseDto(
 
 data class DailyDataDto(
     @SerializedName("dt") val dt: Long,
-    @SerializedName("sunrise") val sunrise: Long,
-    @SerializedName("sunset") val sunset: Long,
-    @SerializedName("temp") val temp: DailyTempDto,
-    @SerializedName("humidity") val humidity: Int = 0
-)
-
-data class DailyTempDto(
-    @SerializedName("day") val day: Double,
-    @SerializedName("min") val min: Double,
-    @SerializedName("max") val max: Double,
-    @SerializedName("night") val night: Double,
-    @SerializedName("eve") val eve: Double,
-    @SerializedName("morn") val morn: Double
+    @SerializedName("temp") val temp: Double,
+    @SerializedName("humidity") val humidity: Int = 0,
+    @SerializedName("weather") val weather: List<WeatherConditionDto> = emptyList()
 )

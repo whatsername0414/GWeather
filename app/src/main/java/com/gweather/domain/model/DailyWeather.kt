@@ -4,13 +4,11 @@ data class DailyWeather(
     val dt: Long,
     val cityName: String,
     val countryCode: String,
-    val tempMin: Double,
-    val tempMax: Double,
-    val sunrise: Long,
-    val sunset: Long,
+    val temp: Double,
     val weatherConditionId: Int,
     val weatherDescription: String,
-    val humidity: Int
+    val humidity: Int,
+    val iconRes: Int
 )
 
 data class DailyWeatherPage(

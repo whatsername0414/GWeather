@@ -1,6 +1,5 @@
 package com.gweather.presentation.navigation
 
-import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -19,21 +18,22 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.gweather.R
 import com.gweather.presentation.auth.LoginScreen
 import com.gweather.presentation.auth.RegisterScreen
 import com.gweather.presentation.home.HomeScreen
@@ -47,6 +47,8 @@ import com.gweather.ui.theme.White70
 private const val ROUTE_LOGIN = "login"
 private const val ROUTE_REGISTER = "register"
 private const val ROUTE_MAIN = "main"
+private const val ROUTE_HOME = "home"
+private const val ROUTE_FORECAST = "forecast"
 
 @Composable
 fun AppNavGraph() {
@@ -78,27 +80,39 @@ fun AppNavGraph() {
         }
 
         composable(ROUTE_MAIN) {
-            var selectedTab by rememberSaveable { mutableIntStateOf(0) }
+            val tabNavController = rememberNavController()
+            val backStackEntry by tabNavController.currentBackStackEntryAsState()
+            val currentRoute = backStackEntry?.destination?.route
 
             Scaffold(
                 containerColor = BgBase,
                 bottomBar = {
                     GWeatherBottomNav(
-                        selectedTab = selectedTab,
-                        onTabSelected = { selectedTab = it }
+                        currentRoute = currentRoute,
+                        onTabSelected = { route ->
+                            tabNavController.navigate(route) {
+                                popUpTo(tabNavController.graph.findStartDestination().id) {
+                                    saveState = true
+                                }
+                                launchSingleTop = true
+                                restoreState = true
+                            }
+                        }
                     )
                 }
             ) { innerPadding ->
-                AnimatedContent(
-                    targetState = selectedTab,
+                NavHost(
+                    navController = tabNavController,
+                    startDestination = ROUTE_HOME,
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(innerPadding),
-                    label = "tab_transition"
-                ) { tab ->
-                    when (tab) {
-                        0 -> HomeScreen(viewModel = hiltViewModel(it))
-                        else -> WeatherListScreen(viewModel = hiltViewModel(it))
+                        .padding(innerPadding)
+                ) {
+                    composable(ROUTE_HOME) {
+                        HomeScreen(viewModel = hiltViewModel())
+                    }
+                    composable(ROUTE_FORECAST) {
+                        WeatherListScreen(viewModel = hiltViewModel())
                     }
                 }
             }
@@ -107,8 +121,14 @@ fun AppNavGraph() {
 }
 
 @Composable
-private fun GWeatherBottomNav(selectedTab: Int, onTabSelected: (Int) -> Unit) {
-    val tabs = listOf("🏠" to "HOME", "📅" to "FORECAST")
+private fun GWeatherBottomNav(
+    currentRoute: String?,
+    onTabSelected: (String) -> Unit
+) {
+    val tabs = listOf(
+        Triple("🏠", stringResource(R.string.tab_home), ROUTE_HOME),
+        Triple("📅", stringResource(R.string.tab_forecast), ROUTE_FORECAST)
+    )
 
     Box(
         modifier = Modifier
@@ -134,13 +154,12 @@ private fun GWeatherBottomNav(selectedTab: Int, onTabSelected: (Int) -> Unit) {
                 horizontalArrangement = Arrangement.SpaceAround,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                tabs.forEachIndexed { index, (icon, label) ->
-                    val isActive = selectedTab == index
+                tabs.forEach { (icon, label, route) ->
                     NavItem(
                         icon = icon,
                         label = label,
-                        isActive = isActive,
-                        onClick = { onTabSelected(index) }
+                        isActive = currentRoute == route,
+                        onClick = { onTabSelected(route) }
                     )
                 }
             }
