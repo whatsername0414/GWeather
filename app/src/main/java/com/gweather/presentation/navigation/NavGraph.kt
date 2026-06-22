@@ -106,13 +106,17 @@ fun AppNavGraph() {
                     startDestination = ROUTE_HOME,
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(innerPadding)
+                        .padding(bottom = innerPadding.calculateBottomPadding())
                 ) {
                     composable(ROUTE_HOME) {
-                        HomeScreen(viewModel = hiltViewModel())
+                        HomeScreen(
+                            viewModel = hiltViewModel(),
+                        )
                     }
                     composable(ROUTE_FORECAST) {
-                        WeatherListScreen(viewModel = hiltViewModel())
+                        WeatherListScreen(
+                            viewModel = hiltViewModel(),
+                        )
                     }
                 }
             }

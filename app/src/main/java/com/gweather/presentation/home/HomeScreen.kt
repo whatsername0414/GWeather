@@ -4,7 +4,6 @@ import android.Manifest
 import android.content.pm.PackageManager
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -33,7 +32,6 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
@@ -55,11 +53,11 @@ import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.airbnb.lottie.compose.LottieAnimation
-import com.gweather.presentation.UiState
 import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.LottieConstants
 import com.airbnb.lottie.compose.rememberLottieComposition
 import com.gweather.R
+import com.gweather.presentation.UiState
 import com.gweather.domain.model.CurrentWeather
 import com.gweather.presentation.components.GlassCard
 import com.gweather.ui.theme.BgBase
@@ -113,7 +111,7 @@ fun HomeScreen(viewModel: HomeViewModel) {
         uiState = uiState,
         isRefreshing = isRefreshing,
         onRefresh = { viewModel.refresh() },
-        onRetry = { viewModel.refresh() }
+        onRetry = { viewModel.refresh() },
     )
 }
 
@@ -123,77 +121,71 @@ fun HomeScreenContent(
     uiState: UiState<HomeData>,
     isRefreshing: Boolean,
     onRefresh: () -> Unit,
-    onRetry: () -> Unit
+    onRetry: () -> Unit,
 ) {
-    Scaffold(containerColor = Color.Transparent) { padding ->
-        BoxWithConstraints(
+    BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+        val w = constraints.maxWidth.toFloat()
+
+        Box(modifier = Modifier.fillMaxSize().background(BgBase))
+
+        Box(
             modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-        ) {
-            val w = constraints.maxWidth.toFloat()
-
-            Box(modifier = Modifier.fillMaxSize().background(BgBase))
-
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .fillMaxHeight(0.65f)
-                    .background(
-                        Brush.radialGradient(
-                            colorStops = arrayOf(
-                                0f to BgGlowTop,
-                                0.5f to BgGlowMid.copy(alpha = 0.85f),
-                                1f to Color.Transparent
-                            ),
-                            center = Offset(w * 0.5f, 0f),
-                            radius = w
-                        )
+                .fillMaxWidth()
+                .fillMaxHeight(0.65f)
+                .background(
+                    Brush.radialGradient(
+                        colorStops = arrayOf(
+                            0f to BgGlowTop,
+                            0.5f to BgGlowMid.copy(alpha = 0.85f),
+                            1f to Color.Transparent
+                        ),
+                        center = Offset(w * 0.5f, 0f),
+                        radius = w
                     )
-            )
+                )
+        )
 
-            PullToRefreshBox(
-                isRefreshing = isRefreshing,
-                onRefresh = onRefresh,
-                modifier = Modifier.fillMaxSize()
-            ) {
-                when (uiState) {
-                    is UiState.Loading -> {
-                        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                            CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
-                        }
+        PullToRefreshBox(
+            isRefreshing = isRefreshing,
+            onRefresh = onRefresh,
+            modifier = Modifier.fillMaxSize()
+        ) {
+            when (uiState) {
+                is UiState.Loading -> {
+                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
                     }
-                    is UiState.Error -> {
-                        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                            Column(
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                                verticalArrangement = Arrangement.spacedBy(12.dp),
-                                modifier = Modifier.padding(24.dp)
+                }
+                is UiState.Error -> {
+                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.spacedBy(12.dp),
+                            modifier = Modifier.padding(24.dp)
+                        ) {
+                            Icon(
+                                Icons.Default.Warning,
+                                contentDescription = null,
+                                modifier = Modifier.size(48.dp),
+                                tint = White50
+                            )
+                            Text(
+                                text = stringResource(uiState.messageRes),
+                                style = MaterialTheme.typography.labelMedium,
+                                color = White60
+                            )
+                            Button(
+                                onClick = onRetry,
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = MaterialTheme.colorScheme.primary
+                                )
                             ) {
-                                Icon(
-                                    Icons.Default.Warning,
-                                    contentDescription = null,
-                                    modifier = Modifier.size(48.dp),
-                                    tint = White50
-                                )
-                                Text(
-                                    text = stringResource(uiState.messageRes),
-                                    style = MaterialTheme.typography.labelMedium,
-                                    color = White60
-                                )
-                                Button(
-                                    onClick = onRetry,
-                                    colors = ButtonDefaults.buttonColors(
-                                        containerColor = MaterialTheme.colorScheme.primary
-                                    )
-                                ) {
-                                    Text(stringResource(R.string.btn_try_again))
-                                }
+                                Text(stringResource(R.string.btn_try_again))
                             }
                         }
                     }
-                    is UiState.Success -> WeatherContent(uiState.data.weather, uiState.data.iconRes)
                 }
+                is UiState.Success -> WeatherContent(uiState.data.weather, uiState.data.iconRes)
             }
         }
     }
@@ -215,39 +207,39 @@ private fun WeatherContent(weather: CurrentWeather, iconRes: Int) {
     ) {
         LocationBar(cityName = weather.cityName, countryCode = weather.countryCode)
 
-        Spacer(Modifier.height(16.dp))
+            Spacer(Modifier.height(16.dp))
 
-        LottieAnimation(
-            composition = iconComposition,
-            iterations = LottieConstants.IterateForever,
-            modifier = Modifier.size(144.dp)
-        )
+            LottieAnimation(
+                composition = iconComposition,
+                iterations = LottieConstants.IterateForever,
+                modifier = Modifier.size(144.dp)
+            )
 
-        Spacer(Modifier.height(8.dp))
+            Spacer(Modifier.height(8.dp))
 
-        TemperatureDisplay(weather.temperature)
+            TemperatureDisplay(weather.temperature)
 
-        Spacer(Modifier.height(6.dp))
+            Spacer(Modifier.height(6.dp))
 
-        Text(
-            text = weather.weatherDescription.uppercase(),
-            style = MaterialTheme.typography.labelMedium,
-            color = White45
-        )
+            Text(
+                text = weather.weatherDescription.uppercase(),
+                style = MaterialTheme.typography.labelMedium,
+                color = White45
+            )
 
-        Spacer(Modifier.height(28.dp))
+            Spacer(Modifier.height(28.dp))
 
-        WeatherStatsRow(weather)
+            WeatherStatsRow(weather)
 
-        Spacer(Modifier.height(16.dp))
+            Spacer(Modifier.height(16.dp))
 
-        SunStrip(
-            sunrise = weather.sunrise,
-            sunset = weather.sunset
-        )
+            SunStrip(
+                sunrise = weather.sunrise,
+                sunset = weather.sunset
+            )
 
-        Spacer(Modifier.height(80.dp))
-    }
+            Spacer(Modifier.height(80.dp))
+        }
     } // BoxWithConstraints
 }
 

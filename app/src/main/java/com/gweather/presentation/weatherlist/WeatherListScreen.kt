@@ -4,7 +4,6 @@ import android.Manifest
 import android.content.pm.PackageManager
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -20,7 +19,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Button
@@ -34,18 +32,23 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
@@ -118,9 +121,21 @@ fun WeatherListScreen(viewModel: WeatherListViewModel) {
     }
 }
 
+@Composable
+private fun statusBarTopDp(): Dp {
+    val view = LocalView.current
+    val density = LocalDensity.current
+    return with(density) {
+        (ViewCompat.getRootWindowInsets(view)
+            ?.getInsets(WindowInsetsCompat.Type.statusBars())
+            ?.top ?: 0).toDp()
+    }
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WeatherListContent(weatherItems: LazyPagingItems<DailyWeather>) {
+    val statusBarTop = statusBarTopDp()
     val isRefreshing = weatherItems.loadState.refresh is LoadState.Loading
             && weatherItems.itemCount > 0
 
@@ -150,7 +165,9 @@ fun WeatherListContent(weatherItems: LazyPagingItems<DailyWeather>) {
         PullToRefreshBox(
             isRefreshing = isRefreshing,
             onRefresh = { weatherItems.refresh() },
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(top = statusBarTop)
         ) {
             LazyColumn(
                 modifier = Modifier
@@ -222,8 +239,8 @@ private fun ForecastHeader() {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 4.dp, vertical = 4.dp)
-            .padding(bottom = 2.dp),
+            .padding(horizontal = 4.dp)
+            .padding(bottom = 8.dp, top = 16.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -256,9 +273,12 @@ private fun ForecastRow(weather: DailyWeather) {
                 .fillMaxWidth()
                 .padding(horizontal = 14.dp, vertical = 16.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            Column(modifier = Modifier.width(64.dp)) {
+            Column(
+                modifier = Modifier.width(64.dp),
+                verticalArrangement = Arrangement.spacedBy(2.dp)
+            ) {
                 Text(
                     text = weather.dt.toTimeString(),
                     style = MaterialTheme.typography.labelLarge,
@@ -285,7 +305,10 @@ private fun ForecastRow(weather: DailyWeather) {
                 lineHeight = 15.sp
             )
 
-            Column(horizontalAlignment = Alignment.End) {
+            Column(
+                horizontalAlignment = Alignment.End,
+                verticalArrangement = Arrangement.spacedBy(2.dp)
+            ) {
                 Text(
                     text = "${weather.temp.roundToInt()}°",
                     style = MaterialTheme.typography.labelMedium,
